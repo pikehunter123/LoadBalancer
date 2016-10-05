@@ -1,5 +1,6 @@
 package ru.zyv;
 
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 
 /**
@@ -11,11 +12,13 @@ public class MyRouteBuilder extends RouteBuilder {
      * Let's configure the Camel routing rules using Java code...
      */
     public void configure() {
+        Processor myProcessor = new MyProcessor();
 
         // here is a sample which processes the input files
         // (leaving them in place - see the 'noop' flag)
         // then performs content based routing on the message using XPath
         from("file:src/data?noop=true")
+            .process(myProcessor)
             .choice()
                 .when(xpath("/person/city = 'London'"))
                     .log("UK message")

@@ -2,6 +2,7 @@ package ru.zyv;
 
 //import org.apache.camel.main.Main;
 
+import java.io.File;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -13,8 +14,31 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import org.apache.camel.main.Main;
+import org.apache.commons.io.FileUtils;
+import sun.nio.ch.IOUtil;
 
 
+class MyProcessor implements Processor {
+  @Override
+  public void process(Exchange exchange) throws Exception {
+      String cn = exchange.getIn().getClass().getCanonicalName();
+      System.out.println("message class="+cn);
+      //
+      org.apache.camel.component.file.GenericFileMessage fm=(org.apache.camel.component.file.GenericFileMessage) exchange.getIn();
+      String bn=fm.getBody().getClass().getCanonicalName();
+      System.out.println("body class="+bn);
+      org.apache.camel.component.file.GenericFile gf=(org.apache.camel.component.file.GenericFile) fm.getBody();
+      
+              String s=FileUtils.readFileToString(new File(gf.getBody().toString()), "utf8");
+              System.out.println("message body="+s);
+              
+              
+      
+      Thread.currentThread().sleep(10000);
+      
+    // do something...
+  }
+}
 /**
  * A Camel Application
  */
