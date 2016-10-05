@@ -3,6 +3,8 @@ package ru.zyv;
 //import org.apache.camel.main.Main;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.StringWriter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -15,6 +17,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import org.apache.camel.main.Main;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import sun.nio.ch.IOUtil;
 
 
@@ -37,6 +40,38 @@ class MyProcessor implements Processor {
       Thread.currentThread().sleep(10000);
       
     // do something...
+  }
+}
+
+
+class InspectorProcessor implements Processor {
+  @Override
+  public void process(Exchange exchange) throws Exception {
+      String cn = exchange.getIn().getClass().getCanonicalName();
+      System.out.println("message class="+cn); 
+      //
+      if (exchange.getIn() instanceof org.apache.camel.impl.DefaultMessage ) {
+      org.apache.camel.impl.DefaultMessage fm=(org.apache.camel.impl.DefaultMessage) exchange.getIn();
+      if (fm.getBody()==null) return;
+      String bn=fm.getBody().getClass().getCanonicalName();
+      System.out.println("body class="+bn);
+      
+      String s="";
+      if (fm.getBody() instanceof org.apache.camel.converter.stream.InputStreamCache )
+      {StringWriter writer = new StringWriter();
+IOUtils.copy((InputStream) fm.getBody(), writer, "UTF-8");
+s = writer.toString();}
+      
+      
+      if (fm.getBody() instanceof byte[] )
+      s = new String((byte[]) fm.getBody(), "utf8");
+      /*org.apache.camel.component.file.GenericFile gf=(org.apache.camel.component.file.GenericFile) fm.getBody();
+      String s=FileUtils.readFileToString(new File(gf.getBody().toString()), "utf8");
+      System.out.println("message body="+s);
+      Thread.currentThread().sleep(10000);
+       */
+      System.out.println("message body="+s);}
+      
   }
 }
 /**
@@ -64,12 +99,12 @@ public class MainApp {
      * A main() so we can easily run these routing rules in our IDE
      */
     public static void main(String... args) throws Exception {
-        Main main = new Main();
+        /*Main main = new Main();
         main.enableHangupSupport();
         main.addRouteBuilder(new MyRouteBuilder());
         main.run(args);
         System.exit(0);
-        
+        */
         final CountDownLatch latch = new CountDownLatch(N);
         final CamelContext context = new DefaultCamelContext();
 
@@ -107,8 +142,25 @@ public class MainApp {
                     @Override
                     public void configure() throws UnknownHostException {
 //                        context.setTracing(Boolean.TRUE);
-
-                        fromF("jetty:http://%s/t320/services/HelloService?matchOnUriPrefix=true", hostName).routeId("mainRoute")
+                        from("netty:tcp://10.1.113.222:8081")
+                                .log("call")                                
+                         .to("netty:tcp://10.1.16.163:8081")
+                        
+                        //fromF("http://%s:8081", hostName)
+                        //from("jetty:http://0.0.0.0:8081/sv/ApplicationServiceSecure?matchOnUriPrefix=true")
+                                //.log("call")
+                                /*.process(new InspectorProcessor())
+                                .log("call2")
+                                .process(new InspectorProcessor())*/
+                        // .to("jetty:http://10.1.16.163:8081/sv/ApplicationServiceSecure?bridgeEndpoint=true&amp;throwExceptionOnFailure=false")
+                         //.to("jetty:http://0.0.0.0:8080/sv/ApplicationServiceSecure?bridgeEndpoint=true&amp;throwExceptionOnFailure=false&amp;transferException=true")
+                          .log("resp")
+                                //.process(new InspectorProcessor())
+                        //?bridgeEndpoint=true&amp;throwExceptionOnFailure=false&amp;transferException=true 
+                            ;
+                                //.loadBalance().failover(1, true, true)
+                                //.to("direct:a").to("direct:b")
+                      /*  fromF("jetty:http://%s/t320/services/HelloService?matchOnUriPrefix=true", hostName).routeId("mainRoute")
                                 .loadBalance().failover(1, true, true)
                                 .to("direct:a").to("direct:b")
                                 .end();
@@ -154,7 +206,7 @@ public class MainApp {
                                 .to("http://t320webservices.open.ac.uk/t320/services/HelloService?bridgeEndpoint=true")
                                 .to("log:START DIRECT F")
 //                        .delay(2000)
-                                .to("log:END DIRECT F");
+                                .to("log:END DIRECT F");*/
                     }
                 }
         );
@@ -174,6 +226,7 @@ public class MainApp {
 //        });
 
         context.start();
+        System.out.println("Started");
 
 //        String message = "      <nks:helloName xmlns:nks=\"http://nks34.t320\">\n"
 //                + "         <nks:name>Yuri</nks:name>\n"
@@ -194,7 +247,7 @@ public class MainApp {
 //        Object resp = template.requestBody("direct:example", message);
 //        System.out.println("\nresp: " + resp.toString());
         latch.await();
-
+        System.out.println("Stop");
         context.stop();
     }
 
