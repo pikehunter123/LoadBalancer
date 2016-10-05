@@ -142,9 +142,14 @@ public class MainApp {
                     @Override
                     public void configure() throws UnknownHostException {
 //                        context.setTracing(Boolean.TRUE);
-                        from("netty:tcp://10.1.113.222:8088")
+                        /*from("netty4-http:http://localhost:8081")
                                 .log("call")                                
-                         .to("netty:tcp://10.1.16.163:8081")
+                         .to("netty4-http:https://ya.ru:80?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                        */
+                        
+                        from("jetty:http://0.0.0.0:8083?matchOnUriPrefix=true")
+                                .log("call")                                
+                         .to("jetty:http://yandex.ru:80?bridgeEndpoint=true&throwExceptionOnFailure=false")
                         
                         //fromF("http://%s:8081", hostName)
                         //from("jetty:http://0.0.0.0:8081/sv/ApplicationServiceSecure?matchOnUriPrefix=true")
