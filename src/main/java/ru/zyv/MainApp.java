@@ -142,7 +142,7 @@ public class MainApp {
                     @Override
                     public void configure() throws UnknownHostException {
 //                        context.setTracing(Boolean.TRUE);
-                        from("netty:tcp://10.1.113.222:8081")
+                        from("netty:tcp://10.1.113.222:8088")
                                 .log("call")                                
                          .to("netty:tcp://10.1.16.163:8081")
                         
