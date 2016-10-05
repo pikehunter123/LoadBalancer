@@ -12,6 +12,8 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
+import org.apache.camel.main.Main;
+
 
 /**
  * A Camel Application
@@ -38,10 +40,12 @@ public class MainApp {
      * A main() so we can easily run these routing rules in our IDE
      */
     public static void main(String... args) throws Exception {
-//        Main main = new Main();
-//        main.enableHangupSupport();
-//        main.addRouteBuilder(new MyRouteBuilder());
-//        main.run(args);
+        Main main = new Main();
+        main.enableHangupSupport();
+        main.addRouteBuilder(new MyRouteBuilder());
+        main.run(args);
+        System.exit(0);
+        
         final CountDownLatch latch = new CountDownLatch(N);
         final CamelContext context = new DefaultCamelContext();
 
